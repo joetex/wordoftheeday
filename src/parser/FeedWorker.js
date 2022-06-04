@@ -16,7 +16,7 @@ class FeedWorker {
 
     start() {
 
-        setInterval(loop, config.delay || 60000);
+        setInterval(this.loop, this.config.delay || 60000);
     }
 
     loop() {

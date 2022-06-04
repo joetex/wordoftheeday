@@ -4,8 +4,9 @@
 const express = require('express')
 const app = express()
 const port = 9090
+const path = require('path');
 
-const config = require('../config/config.json');
+const config = require('./config/config.json');
 const FeedWorker = require('./parser/FeedWorker');
 const fw = new FeedWorker(config);
 
