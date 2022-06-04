@@ -3,13 +3,13 @@
 
 const express = require('express')
 const app = express()
-const port = 3000
+const port = 9090
 
 const config = require('../config/config.json');
 const FeedWorker = require('./parser/FeedWorker');
 const fw = new FeedWorker(config);
 
-
+app.use('/.well-known', express.static(path.join(__dirname, 'public/.well-known'), { dotfiles: 'allow' }));
 
 app.get('/', (req, res) => {
     res.send(`<!DOCTYPE html>
