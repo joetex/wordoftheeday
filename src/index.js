@@ -10,7 +10,10 @@ const config = require('./config/config.json');
 const FeedWorker = require('./parser/FeedWorker');
 const fw = new FeedWorker(config);
 
-app.use('/.well-known', express.static(path.join(__dirname, 'public/.well-known'), { dotfiles: 'allow' }));
+const wellknownPath = path.join(__dirname, '../public/.well-known');
+
+console.log("wellknownPath = ", wellknownPath);
+app.use('/.well-known', express.static(wellknownPath, { dotfiles: 'allow' }));
 
 app.get('/', (req, res) => {
     res.send(`<!DOCTYPE html>
