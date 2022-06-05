@@ -1,9 +1,10 @@
 
 const FeedParser = require('./FeedParser');
-const axios = require('axios');
+
 
 const defaultConfigJSON = {
-    delay: 60000
+    "interval": 180000,
+    "rssJSONPath": "./config/rss.json"
 }
 
 class FeedWorker {
@@ -11,21 +12,22 @@ class FeedWorker {
     constructor(configJSON, feedList) {
         this.config = configJSON || defaultConfig;
         this.feeds = feedList || [];
+        this.parser = new FeedParser(this.config);
     }
 
 
     start() {
 
-        setInterval(this.loop, this.config.delay || 60000);
+        // this.doWork();
+        // setInterval(() => { this.doWork() }, this.config.interval || 60000);
     }
 
-    loop() {
+    async doWork() {
 
+        this.parser.processFeeds();
     }
 
-    async download(url) {
-        let response = await axios.get(url);
-    }
+
 }
 
 module.exports = FeedWorker;

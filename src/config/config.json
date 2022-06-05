@@ -1,4 +1,6 @@
 {
-    "interval": 60000,
-    "rssURLs": "rss.json"
+    "interval": 180000,
+    "rssJSONPath": "./config/rss.json",
+    "badURLPath": "./output/badurls.json",
+    "goodURLPath": "./output/goodurls.json"
 }
