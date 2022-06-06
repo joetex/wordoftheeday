@@ -1,4 +1,8 @@
 [
+  {
+    "url": "http://drudgereport.com",
+    "rss": "http://feeds.feedburner.com/DrudgeReportFeed"
+  },
     {
       "url": "http://money.cnn.com",
       "rss": "http://rss.cnn.com/rss/money_topstories.rss"
@@ -7,10 +11,7 @@
       "url": "http://thehill.com",
       "rss": "http://thehill.com/rss/syndicator/19110"
     },
-    {
-      "url": "http://drudgereport.com",
-      "rss": "http://feeds.feedburner.com/DrudgeReportFeed"
-    },
+    
     {
       "url": "https://chron.com",
       "rss": "https://www.chron.com/rss/feed/News-270.php"

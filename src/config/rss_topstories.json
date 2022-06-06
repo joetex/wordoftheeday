@@ -1,0 +1,46 @@
+[
+    {
+        "title": "CNN",
+        "link": "https://www.cnn.com/",
+        "url": "http://rss.cnn.com/rss/cnn_topstories.rss",
+        "tags": ["Democrat", "U.S.", "Top Stories"]
+    },
+    {
+        "title": "CNBC",
+        "link": "https://www.cnbc.com/",
+        "url": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114",
+        "tags": ["Democrat", "U.S.", "Top Stories"]
+    },
+    {
+        "title": "New York Times",
+        "link": "https://www.nytimes.com/",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",
+        "tags": ["Democrat", "U.S.", "Top Stories"]
+    },
+    {
+        "title": "Fox News",
+        "link": "https://www.foxnews.com/",
+        "url": "https://moxie.foxnews.com/feedburner/latest.xml",
+        "tags": ["Republican", "U.S.", "Top Stories"]
+    },
+   
+    {
+        "title": "Drudge Report",
+        "link": "http://drudgereport.com",
+        "url": "https://feeds.feedburner.com/DrudgeReportFeed",
+        "tags": ["Republican", "U.S.", "Top Stories"]
+    },
+    {
+        "title": "National Review",
+        "link": "http://nationalreview.com",
+        "url": "https://www.nationalreview.com/feed/",
+        "tags": ["Republican", "U.S.", "Top Stories"]
+    },
+    {
+        "title": "Washington Examiner",
+        "link": "https://www.washingtonexaminer.com/",
+        "url": "https://www.washingtonexaminer.com/tag/news.rss",
+        "tags": ["Republican", "U.S.", "Top Stories"]
+    }
+    
+]

@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --watch public --watch src --ignore src/output -e html,js,json,css src/index.js",
+    "start": "nodemon --inspect --watch public --watch src --ignore src/output -e html,js,json,css src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@blakeembrey/deque": "^1.0.5",
+    "aws-sdk": "^2.1148.0",
     "axios": "^0.27.2",
     "express": "^4.18.1",
     "nodemon": "^2.0.16",

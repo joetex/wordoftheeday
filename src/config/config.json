@@ -1,6 +1,7 @@
 {
     "interval": 180000,
-    "rssJSONPath": "./config/rss.json",
+    "rssJSONPath": "./config/rss_topstories.json",
     "badURLPath": "./output/badurls.json",
-    "goodURLPath": "./output/goodurls.json"
+    "goodURLPath": "./output/goodurls.json",
+    "feedSavePath": "./output/feedSave.json"
 }

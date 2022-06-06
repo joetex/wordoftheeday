@@ -23,6 +23,11 @@ app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, '../public', '/index.html'));
 });
 
+
+app.get('/topstories', function (req, res) {
+    res.header("Content-Type", 'application/json');
+    res.sendFile(path.join(__dirname, 'output', 'feedSave.json'));
+})
 // app.get('/', (req, res) => {
 //     res.send(`<!DOCTYPE html>
 //         <html>
