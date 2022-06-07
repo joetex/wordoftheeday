@@ -50,7 +50,7 @@ class Marquee {
     };
 
     getItemWidth = (element) => {
-        return element.offsetWidth;
+        return Math.max(600, element.offsetWidth);
     };
 
     getTranslateX = (element) => {
@@ -72,10 +72,13 @@ class Marquee {
 
     processItemTranslation = (item, shouldDoAnimLoop) => {
 
-
+        if (this.options.speed == 0) {
+            return;
+        }
 
         let parentWidth = this.getParentWidth();
-        let itemWidth = this.getItemWidth(item.element) + this.options.paddingSpace;
+        let actualItemWidth = this.getItemWidth(item.element);
+        let itemWidth = actualItemWidth + this.options.paddingSpace;
         let totalWidth = (parentWidth + itemWidth);
 
 
@@ -96,6 +99,7 @@ class Marquee {
         }
 
         setTimeout(() => {
+
             item.element.style.transform = "translateX(" + (targetX) + "px)  translateZ(0)";
             item.element.style.transition = 'transform ' + exitTime + 's linear';
         }, 1)
@@ -117,6 +121,11 @@ class Marquee {
         anchor.href = feedItem.link;
         anchor.textContent = feedItem.title;
 
+        anchor.onclick = function (e) {
+
+            return false;
+        }
+
         let item = this.addItem(anchor, feedItem);
         return item;
     }
@@ -127,10 +136,87 @@ class Marquee {
         if (customClass)
             element.classList.add(customClass);
 
+
+
         element.appendChild(child);
         // this.parent.appendChild(item);
         this.queue.push({ element, data });
 
+    }
+    onEnter = (item) => {
+
+        if (this.options.direction < 0) {
+            this.setItemTranslation(item.element, 0);
+        }
+        else {
+            let parentWidth = this.getParentWidth();
+            let itemWidth = this.getItemWidth(item.element) + this.options.paddingSpace;
+            let totalWidth = (parentWidth + itemWidth);
+            this.setItemTranslation(item.element, -totalWidth)
+        }
+
+        setTimeout(() => {
+            let itemWidth = this.getItemWidth(item.element)
+            item.element.style.width = itemWidth + 'px';
+        }, 1)
+
+        setTimeout(() => {
+            this.createDescription(item);
+        }, 50)
+
+
+    }
+
+    createDescription = (item) => {
+
+        let descCheck = item.element.querySelector('.marquee-item-desc-wrapper');
+        if (descCheck) {
+            return;
+        }
+
+        let descTemplate = document.querySelector('.template.marquee-item-desc-wrapper');
+        descTemplate = descTemplate.cloneNode(true);
+        descTemplate.classList.remove('template');
+
+        let itemContent = this.sanitizeContent(item.data.content);
+
+        let content = descTemplate.querySelector('.marquee-item-desc-content');
+        content.innerHTML = itemContent;
+
+        let images = this.extractImages(content)
+        if (images.length > 0) {
+            let featuredImageElem = descTemplate.querySelector(".marquee-item-desc-featuredimage");
+            featuredImageElem.src = images[0];
+            featuredImageElem.classList.add('active');
+        }
+
+
+        // let itemWidth = this.getItemWidth(item.element);
+
+
+        item.element.appendChild(descTemplate);
+    }
+
+    extractImages = (content) => {
+
+        let images = [];
+        let imageElems = content.querySelectorAll('img');
+        for (var i = 0; i < imageElems.length; i++) {
+            let img = imageElems[i];
+            images.push(img.src);
+            img.parentNode.removeChild(img);
+        }
+
+        return images;
+    }
+
+    sanitizeContent = (itemContent) => {
+        itemContent = itemContent.replace(/\r?\n/g, "<br />"); //convert newlines to break tags
+        itemContent = itemContent.replace(/javascript\:/g, ""); //remove inline javascript
+        itemContent = itemContent.replace(/\<\/?script[^\>]*/g, ""); //remove script tags
+        itemContent = itemContent.replace(/\<\/?iframe[^\>]*/g, ""); //remove iframe tags
+        itemContent = itemContent.replace(/on[^=]{3,10}=/g, ""); //remove inline dom events
+        return itemContent;
     }
 
     onEnterFull = (item) => {
@@ -142,9 +228,14 @@ class Marquee {
         this.blocked = false;
 
         // console.log("OnEnterFull: ", item.data.title);
+        if (this.animLoopTimeout != 0) {
+            clearTimeout(this.animLoopTimeout);
+
+        }
         this.animLoopTimeout = setTimeout(() => {
             this.animLoop(true);
         }, 1)
+
 
     }
     onExit = (item) => {
@@ -152,10 +243,19 @@ class Marquee {
             clearTimeout(item.exitTimeout);
             item.exitTimeout = 0;
         }
+        if (this.options.speed == 0)
+            return;
 
         // console.log("onExit: ", item.data.title);
         if (this.queue.size == 0) {
-            this.animLoopTimeout = setTimeout(() => { this.animLoop() }, this.options.nextItemDelay);
+            if (this.animLoopTimeout != 0) {
+                clearTimeout(this.animLoopTimeout);
+
+            }
+            this.animLoopTimeout = setTimeout(() => {
+                this.animLoop();
+            }, this.options.nextItemDelay)
+
         }
         if (this.inView.size > 0 && this.inView.peek(-1) == item) {
             let removedItem = this.inView.pop();
@@ -168,14 +268,17 @@ class Marquee {
 
     animLoop = (isFromOnEnter) => {
 
-
+        if (this.options.speed == 0) {
+            console.warn("BLOCKED (paused)");
+            return;
+        }
         if (this.animLoopTimeout != 0) {
             clearTimeout(this.animLoopTimeout);
             this.animLoopTimeout = 0;
         }
 
         if (this.blocked) {
-            console.warn("BLOCKED");
+            console.warn("BLOCKED (busy)");
             return;
         }
         if (this.queue.size == 0) {
@@ -202,15 +305,9 @@ class Marquee {
 
 
 
-        if (this.options.direction < 0) {
-            this.setItemTranslation(item.element, 0);
-        }
-        else {
-            let parentWidth = this.getParentWidth();
-            let itemWidth = this.getItemWidth(item.element) + this.options.paddingSpace;
-            let totalWidth = (parentWidth + itemWidth);
-            this.setItemTranslation(item.element, -totalWidth)
-        }
+
+
+        this.onEnter(item);
 
         this.processItemTranslation(item, true);
     }

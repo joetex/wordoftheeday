@@ -1,59 +1,58 @@
+var marquees = {};
+var feedmanager = new FeedManager();
 
+function createMarquee(marqueeId, options) {
+    let marquee = new Marquee(marqueeId, options || { speed: 1000, direction: -1, paddingSpace: 200 });
+
+    let marqueeElem = document.getElementById(marqueeId);
+    marqueeElem.addEventListener('click', function (e) {
+        // marquee.toggleDirection();
+        marquee.play();
+    })
+
+    let marqueeItems = marqueeElem.querySelectorAll('.marquee-item');
+    for (var i = 0; i < marqueeItems.length; i++) {
+        let item = marqueeItems[i];
+        item.addEventListener('click', function (e) {
+
+            return false;
+        })
+    }
+    marqueeElem.addEventListener('mouseenter', function (e) {
+        marquee.pause();
+    })
+    marqueeElem.addEventListener('mouseleave', function (e) {
+
+    })
+
+    marquees[marqueeId] = marquee;
+
+    return marquee;
+}
+
+function populateEmptyMarquee(marqueeId, feedItems) {
+
+    let marquee = marquees[marqueeId];
+    if (!marquee) {
+        console.error("Invalid marquee id", marqueeId);
+        return;
+    }
+
+    for (var z = 0; z < feedItems.length; z++) {
+        marquee.createItem(feedItems[z]);
+    }
+}
 
 async function loadTickers() {
+    let breakingURL = 'https://wotd-public.s3.us-west-000.backblazeb2.com/feeds/topstories.json';
+    await feedmanager.download(breakingURL);
 
-    const response = await fetch('https://wotd-public.s3.us-west-000.backblazeb2.com/feeds/topstories.json');
-    let rssFeeds = await response.json();
-    console.log(rssFeeds);
+    let breakingId = 'breaking-news';
+    let breakingMarquee = createMarquee(breakingId);
+    let breakingItems = feedmanager.getFeedsByTag('Top Stories');
+    populateEmptyMarquee(breakingId, breakingItems);
 
-    let breakingNews = new Marquee('breaking-news', { speed: 100, direction: -1, paddingSpace: 200 });
-
-    let news = [];
-    for (var i = 0; i < rssFeeds.length; i++) {
-        let rssFeed = rssFeeds[i];
-
-        if (!rssFeed.feed || !rssFeed.feed.items)
-            continue;
-
-        for (var j = 0; j < rssFeed.feed.items.length; j++) {
-            let feedItem = rssFeed.feed.items[j];
-
-            news.push(feedItem);
-        }
-    }
-
-    news.sort((a, b) => {
-        let aTime = new Date(a.isoDate).getTime();
-        let bTime = new Date(b.isoDate).getTime();
-        return bTime - aTime;
-    })
-
-    for (var z = 0; z < news.length; z++) {
-        breakingNews.createItem(news[z]);
-    }
-
-    // breakingNews.createItem({ title: '7 things to know before the bell', link: 'https://www.reddit.com/r/jokes' });
-    // breakingNews.createItem({ title: 'SoftBank and Toyota want driverless cars to change the world', link: 'https://www.reddit.com/r/houston' });
-    // breakingNews.createItem({ title: 'Aston Martin falls 5% in its London IPO', link: 'https://www.reddit.com/r/austin' });
-    // breakingNews.createItem({ title: 'Barnes & Noble stock soars 20% as it explores a sale', link: 'https://www.reddit.com/r/funny' });
-
-    breakingNews.animLoop();
-
-    let breakingNewsElem = document.getElementById('breaking-news');
-    breakingNewsElem.addEventListener('click', function (e) {
-        breakingNews.togglePause();
-    })
-
-    breakingNewsElem.addEventListener('mouseenter', function (e) {
-
-        breakingNews.setDirection(1);
-    })
-
-    breakingNewsElem.addEventListener('mouseleave', function (e) {
-
-        breakingNews.setDirection(-1);
-    })
-
+    breakingMarquee.animLoop();
 }
 
 

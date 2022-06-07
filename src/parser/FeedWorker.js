@@ -18,7 +18,7 @@ class FeedWorker {
 
     start() {
 
-        this.doWork();
+        // this.doWork();
         // setInterval(() => { this.doWork() }, this.config.interval || 60000);
     }
 
