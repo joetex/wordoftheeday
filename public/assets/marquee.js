@@ -20,6 +20,14 @@ class Marquee {
         this.options.nextItemDelay = this.options.nextItemDelay || 500;
         this.prevSpeed = this.options.speed;
 
+        this.paused = false;
+        this.dragging = false;
+        this.mousedown = false;
+
+        this.xStart = 0;
+        this.xPrev = 0;
+        this.xOffset = 0;
+
         this.parent = document.getElementById(id);
 
         this.animLoopTimeout = 0;
@@ -35,10 +43,10 @@ class Marquee {
 
 
     checkTabFocused = () => {
-        if (document.visibilityState === 'visible') {
-            this.play();
+        if (document.visibilityState === 'visible' && !this.paused) {
+            this.play(true);
         } else {
-            this.pause();
+            this.pause(true);
         }
     }
 
@@ -66,13 +74,67 @@ class Marquee {
     }
 
     setItemTranslation = (element, x) => {
+        // item.prevX = this.getTranslateX(element);
         element.style.transform = "translateX(" + x + "px) translateZ(0)";
         element.style.transition = 'none';
+
     };
+
+    processDragItems = () => {
+        for (const item of this.inView) {
+            this.processDragItemTranslation(item);
+        }
+    }
+
+    processDragItemTranslation = (item) => {
+
+        let parentWidth = this.getParentWidth();
+        let actualItemWidth = this.getItemWidth(item.element);
+        let itemWidth = actualItemWidth + this.options.paddingSpace;
+        let totalWidth = (parentWidth + itemWidth);
+
+
+        let currentX = this.getTranslateX(item.element);
+        currentX = Math.abs(currentX);
+        let targetX = currentX + this.xOffset;
+
+
+        this.setItemTranslation(item.element, -targetX);
+
+
+
+
+        if (this.xOffset < 0) {
+            if (targetX <= (totalWidth - itemWidth) && item.state == 'enter') {
+                this.onEnterFull(item);
+            }
+            else if (targetX <= 0) {
+                this.onExit(item);
+            }
+            else if (targetX > (totalWidth - itemWidth) && item.state == 'enterfull') {
+                item.state = 'enter';
+            }
+        } else if (this.xOffset > 0) {
+            if (targetX >= itemWidth && item.state == 'enter') {
+                this.onEnterFull(item);
+            }
+            else if (targetX >= totalWidth) {
+                this.onExit(item);
+            }
+            else if (targetX < itemWidth && item.state == 'enterfull') {
+                item.state = 'enter';
+            }
+        }
+
+
+
+
+    };
+
 
     processItemTranslation = (item, shouldDoAnimLoop) => {
 
-        if (this.options.speed == 0) {
+        if (this.options.speed == 0 || this.dragging) {
             return;
         }
 
@@ -87,6 +149,8 @@ class Marquee {
         let targetX = totalWidth;
         let exitTime = 0;
         let enterTime = 0;
+
+        item.prevX = currentX;
 
         if (this.options.direction > 0) {
             targetX = 0;
@@ -110,23 +174,214 @@ class Marquee {
         let exitTimeMs = Math.abs(Math.round(exitTime * 1000));
 
 
-        if (shouldDoAnimLoop)
+        if (shouldDoAnimLoop) {
+            if (item.enterTimeout) {
+                clearTimeout(item.enterTimeout);
+            }
             item.enterTimeout = setTimeout(() => { this.onEnterFull(item) }, (enterTime > 0) ? enterTimeMs : 1);
-        if (exitTime > 0)
+        }
+        if (exitTime > 0) {
+            if (item.exitTimeout) {
+                clearTimeout(item.exitTimeout);
+            }
             item.exitTimeout = setTimeout(() => { this.onExit(item) }, exitTimeMs);
+        }
     };
+
+
+    onEnter = (item) => {
+
+        if (this.options.direction < 0 || (this.dragging && this.xOffset > 0)) {
+            this.setItemTranslation(item.element, 0);
+        }
+        else if (this.options.direction > 0 || (this.dragging && this.xOffset < 0)) {
+            let parentWidth = this.getParentWidth();
+            let itemWidth = this.getItemWidth(item.element) + this.options.paddingSpace;
+            let totalWidth = (parentWidth + itemWidth);
+            this.setItemTranslation(item.element, -totalWidth)
+        }
+
+        // setTimeout(() => {
+        let itemWidth = this.getItemWidth(item.element)
+        item.element.style.width = itemWidth + 'px';
+        // }, 1)
+        item.state = 'enter';
+
+        // setTimeout(() => {
+        //     this.createDescription(item);
+        // }, 1)
+
+    }
+
+    onEnterFull = (item) => {
+        if (item.enterTimeout) {
+            clearTimeout(item.enterTimeout);
+            item.enterTimeout = 0;
+        }
+
+        item.state = 'enterfull';
+        this.blocked = false;
+
+        if (!this.dragging) {
+            // console.log("OnEnterFull: ", item.data.title);
+            this.animLoop(true);
+        }
+        else {
+            let index = this.inView.indexOf(item);
+            if (index == 0)
+                this.animLoop(true);
+        }
+    }
+
+    onExit = (item) => {
+        item.state = 'exit';
+
+        if (this.options.speed == 0)
+            return;
+
+
+        // console.log("onExit: ", item.data.title);
+        if (!this.dragging) {
+            if (this.queue.size == 0) {
+                if (this.animLoopTimeout != 0)
+                    clearTimeout(this.animLoopTimeout);
+                this.animLoopTimeout = setTimeout(() => { this.animLoop(); }, this.options.nextItemDelay)
+            }
+        }
+        else {
+            let areAllInside = true;
+            for (const i of this.inView) {
+                if (i.state == 'enter') {
+                    areAllInside = false; break;
+                }
+            }
+
+            if (areAllInside)
+                this.animLoop();
+        }
+
+        if (this.inView.size > 0 && this.inView.peek(-1) == item) {
+            let removedItem = this.inView.pop();
+            // console.log("[inView] Removed item: ", removedItem.data.title);
+
+            let descElem = item.element.querySelector('.marquee-item-desc-wrapper');
+            if (descElem) {
+                descElem.classList.remove('active');
+                item.element.querySelector('a').classList.remove('active');
+            }
+
+            this.queue.pushLeft(item);
+            if (!this.parent.contains(item.element)) {
+                console.log("item missing from parent")
+
+            }
+            else
+                this.parent.removeChild(item.element);
+        }
+
+    }
+
+    animLoop = (isFromOnEnter) => {
+
+        if (this.options.speed == 0 && !this.dragging) {
+            // console.warn("BLOCKED (paused)");
+            return;
+        }
+        if (this.animLoopTimeout != 0) {
+            clearTimeout(this.animLoopTimeout);
+            this.animLoopTimeout = 0;
+        }
+
+        if (this.blocked) {
+            // console.warn("BLOCKED (busy)");
+            return;
+        }
+        if (this.queue.size == 0) {
+            // console.warn("No more items in marquee");
+            return;
+        }
+
+        // if (!this.dragging) {
+        //block subsequent calls for now
+        this.blocked = true;
+        // }
+
+
+        //get next item to display in marquee
+        let item = this.queue.peek(-1);
+        if (!item) {
+            console.warn("Invalid item in marquee");
+            return;
+        }
+
+        //add the item to the marquee and move to inView list
+        item = this.queue.pop();
+        this.parent.appendChild(item.element);
+        this.inView.pushLeft(item);
+
+
+        //trigger onEnter event
+        this.onEnter(item);
+
+        //process animation
+        this.processItemTranslation(item, true);
+    }
 
     createItem = (feedItem) => {
         let anchor = document.createElement('a');
         anchor.href = feedItem.link;
         anchor.textContent = feedItem.title;
 
+        var item = this.addItem(anchor, feedItem);
+        var $this = this;
+
+
         anchor.onclick = function (e) {
+            let descElem = e.target.parentNode.querySelector('.marquee-item-desc-wrapper');
+            if (!descElem) {
+                return false;
+            }
 
             return false;
         }
 
-        let item = this.addItem(anchor, feedItem);
+        anchor.onmouseenter = function (e) {
+
+            if (!item) {
+                for (const i of $this.inView) {
+                    if (i.element = e.target.parentNode) {
+                        item = i;
+                        break;
+                    }
+                }
+
+                if (!item) {
+                    console.error("Item not found");
+                }
+            }
+
+            // let descElem = e.target.parentNode.querySelector('.marquee-item-desc-wrapper');
+            // if (!descElem) {
+            //     descElem = $this.createDescription(item);
+            // }
+
+            item.element.classList.add('active');
+            // e.target.classList.add('active');
+            // descElem.classList.add('active');
+        }
+
+        anchor.onmouseleave = function (e) {
+
+            // let descElem = e.target.parentNode.querySelector('.marquee-item-desc-wrapper');
+            // if (!descElem) {
+            //     return;
+            // }
+            item.element.classList.remove('active');
+            // e.target.classList.remove('active');
+            // descElem.classList.remove('active');
+        }
+
+
         return item;
     }
 
@@ -141,29 +396,6 @@ class Marquee {
         element.appendChild(child);
         // this.parent.appendChild(item);
         this.queue.push({ element, data });
-
-    }
-    onEnter = (item) => {
-
-        if (this.options.direction < 0) {
-            this.setItemTranslation(item.element, 0);
-        }
-        else {
-            let parentWidth = this.getParentWidth();
-            let itemWidth = this.getItemWidth(item.element) + this.options.paddingSpace;
-            let totalWidth = (parentWidth + itemWidth);
-            this.setItemTranslation(item.element, -totalWidth)
-        }
-
-        setTimeout(() => {
-            let itemWidth = this.getItemWidth(item.element)
-            item.element.style.width = itemWidth + 'px';
-        }, 1)
-
-        setTimeout(() => {
-            this.createDescription(item);
-        }, 50)
-
 
     }
 
@@ -195,6 +427,7 @@ class Marquee {
 
 
         item.element.appendChild(descTemplate);
+        return descTemplate;
     }
 
     extractImages = (content) => {
@@ -211,7 +444,9 @@ class Marquee {
     }
 
     sanitizeContent = (itemContent) => {
-        itemContent = itemContent.replace(/\r?\n/g, "<br />"); //convert newlines to break tags
+        itemContent = itemContent.replace(/\r?\n/g, ""); //convert newlines to break tags
+        itemContent = itemContent.replace(/\<br ?\/?\>/g, ""); //convert newlines to break tags
+        itemContent = itemContent.replace(/\<a[^\>]*\>.*<\/a\>/g, ""); //convert newlines to break tags
         itemContent = itemContent.replace(/javascript\:/g, ""); //remove inline javascript
         itemContent = itemContent.replace(/\<\/?script[^\>]*/g, ""); //remove script tags
         itemContent = itemContent.replace(/\<\/?iframe[^\>]*/g, ""); //remove iframe tags
@@ -219,98 +454,7 @@ class Marquee {
         return itemContent;
     }
 
-    onEnterFull = (item) => {
-        if (item.enterTimeout) {
-            clearTimeout(item.enterTimeout);
-            item.enterTimeout = 0;
-        }
 
-        this.blocked = false;
-
-        // console.log("OnEnterFull: ", item.data.title);
-        if (this.animLoopTimeout != 0) {
-            clearTimeout(this.animLoopTimeout);
-
-        }
-        this.animLoopTimeout = setTimeout(() => {
-            this.animLoop(true);
-        }, 1)
-
-
-    }
-    onExit = (item) => {
-        if (item.exitTimeout) {
-            clearTimeout(item.exitTimeout);
-            item.exitTimeout = 0;
-        }
-        if (this.options.speed == 0)
-            return;
-
-        // console.log("onExit: ", item.data.title);
-        if (this.queue.size == 0) {
-            if (this.animLoopTimeout != 0) {
-                clearTimeout(this.animLoopTimeout);
-
-            }
-            this.animLoopTimeout = setTimeout(() => {
-                this.animLoop();
-            }, this.options.nextItemDelay)
-
-        }
-        if (this.inView.size > 0 && this.inView.peek(-1) == item) {
-            let removedItem = this.inView.pop();
-            console.log("[inView] Removed item: ", removedItem.data.title);
-            this.queue.pushLeft(item);
-            this.parent.removeChild(item.element);
-        }
-
-    }
-
-    animLoop = (isFromOnEnter) => {
-
-        if (this.options.speed == 0) {
-            console.warn("BLOCKED (paused)");
-            return;
-        }
-        if (this.animLoopTimeout != 0) {
-            clearTimeout(this.animLoopTimeout);
-            this.animLoopTimeout = 0;
-        }
-
-        if (this.blocked) {
-            console.warn("BLOCKED (busy)");
-            return;
-        }
-        if (this.queue.size == 0) {
-            console.warn("No more items in marquee");
-            return;
-        }
-        let item = this.queue.peek(-1);
-        // this.queue.push(item);
-        if (!item) {
-            console.warn("Invalid item in marquee");
-            return;
-        }
-
-        this.blocked = true;
-
-        console.log("[inView] Adding item: ", item.data.title);
-        if (this.queue.size > 0 && this.queue.peek(-1) == item) {
-            let removedItem = this.queue.pop();
-            console.log("[queue] Removed item: ", removedItem.data.title);
-            this.parent.appendChild(item.element);
-            this.inView.pushLeft(item);
-        }
-
-
-
-
-
-
-        this.onEnter(item);
-
-        this.processItemTranslation(item, true);
-    }
 
     setPixelsPerSecond = (newSpeed) => {
         this.options.speed = newSpeed || this.options.speed;
@@ -338,18 +482,24 @@ class Marquee {
 
     setDirection = (newDir) => {
         newDir = Number.parseInt(newDir);
+
+        let prevDirection = this.options.direction;
+
         if (newDir < 0) {
             this.options.direction = -1;
         } else {
             this.options.direction = 1;
         }
 
-        this.queue.reverse();
-        this.inView.reverse();
+        if (prevDirection != this.options.direction) {
+            this.queue.reverse();
+            this.inView.reverse();
+        }
 
-        if (this.options.speed > 0) {
+
+        if (this.options.speed > 0 && !this.dragging) {
             this.pause();
-            setTimeout(() => { this.play(); }, 50);
+            setTimeout(() => { this.play(); }, 1);
         }
 
     }
@@ -361,12 +511,16 @@ class Marquee {
             this.pause();
     }
 
-    pause = () => {
+    pause = (isSystemTriggered) => {
         if (this.options.speed == 0)
             return;
         this.prevSpeed = this.options.speed;
         this.options.speed = 0;
 
+
+        if (!isSystemTriggered) {
+            this.paused = true;
+        }
         if (this.animLoopTimeout != 0) {
             clearTimeout(this.animLoopTimeout);
             this.animLoopTimeout = 0;
@@ -404,16 +558,77 @@ class Marquee {
         // }
     }
 
-    play = () => {
+    play = (isSystemTriggered) => {
         //if (prevSpeed != 0) {
+        if (this.options.speed > 0) {
+            return;
+        }
+
         this.options.speed = this.prevSpeed;
         //}
+        if (!isSystemTriggered) {
+            this.paused = false;
+        }
 
         let i = 0;
         for (const item of this.inView) {
             this.processItemTranslation(item, i == 0);
             i++;
         }
+
+    }
+
+
+    startDrag = (e) => {
+
+        this.mousedown = true;
+        this.xStart = e.clientX;
+        this.xPrev = e.clientX;
+        this.prevDirection = this.options.direction;
+        // this.pause(true);
+    }
+
+    drag = (e) => {
+        if (!this.mousedown) {
+            return;
+        }
+
+        let diff = Math.abs(this.xStart - e.clientX);
+        if (diff > 10) {
+            this.dragging = true;
+        }
+
+        if (!this.dragging) {
+            return;
+        }
+
+
+        this.xOffset = (this.xPrev - e.clientX);
+        this.xPrev = e.clientX;
+
+        this.setDirection(-this.xOffset);
+        // console.log("xOffset = ", this.xOffset);
+        this.processDragItems();
+        // console.log(e);
+    }
+
+    endDrag = (e) => {
+
+        if (!this.dragging)
+            return;
+
+        this.setDirection(this.prevDirection);
+
+        this.dragging = false;
+        this.mousedown = false;
+
+        let i = 0;
+        for (const item of this.inView) {
+            this.processItemTranslation(item, i == 0);
+            i++;
+        }
+
+
 
     }
 }

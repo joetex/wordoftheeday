@@ -2,24 +2,40 @@ var marquees = {};
 var feedmanager = new FeedManager();
 
 function createMarquee(marqueeId, options) {
-    let marquee = new Marquee(marqueeId, options || { speed: 1000, direction: -1, paddingSpace: 200 });
+    let marquee = new Marquee(marqueeId, options || { speed: 100, direction: -1, paddingSpace: 200 });
 
     let marqueeElem = document.getElementById(marqueeId);
     marqueeElem.addEventListener('click', function (e) {
         // marquee.toggleDirection();
-        marquee.play();
+        // marquee.togglePause();
     })
 
-    let marqueeItems = marqueeElem.querySelectorAll('.marquee-item');
-    for (var i = 0; i < marqueeItems.length; i++) {
-        let item = marqueeItems[i];
-        item.addEventListener('click', function (e) {
+    marqueeElem.addEventListener('mousedown', function (e) {
+        marquee.startDrag(e);
+    })
+    marqueeElem.addEventListener('mousemove', function (e) {
+        marquee.drag(e);
+    })
 
-            return false;
-        })
-    }
+    marqueeElem.addEventListener('mouseup', function (e) {
+        marquee.endDrag(e);
+    })
+    marqueeElem.addEventListener('mouseleave', function (e) {
+        marquee.endDrag(e);
+    })
+
+    document.addEventListener('mouseup', function (e) {
+        marquee.endDrag(e);
+        // marquee.play();
+    })
+    document.addEventListener('mousemove', function (e) {
+        marquee.drag(e);
+        e.stopPropagation();
+        e.preventDefault();
+    })
+
     marqueeElem.addEventListener('mouseenter', function (e) {
-        marquee.pause();
+        // marquee.pause();
     })
     marqueeElem.addEventListener('mouseleave', function (e) {
 

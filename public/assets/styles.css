@@ -40,12 +40,16 @@ html, body {
 	top:0;
 }
 
-.marquee-item a, .marquee-item a:visited, .marquee-item a:active {
+.marquee-item a {
 	text-decoration: none;
 	color:#000;
 	font-size:2rem;
 	white-space: nowrap;
 	display:block;
+}
+
+.marquee-item.active a {
+	text-decoration: underline;
 }
 
 /* .marquee-header {
@@ -121,6 +125,11 @@ html, body {
 	overflow:hidden;
 	color:#333;
 	line-height:1rem;
+	display:none;
+}
+
+.marquee-item.active .marquee-item-desc-wrapper {
+	display:block;
 }
 
 .marquee-item-desc-flex {

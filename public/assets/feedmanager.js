@@ -38,7 +38,7 @@ class FeedManager {
                     continue;
                 }
 
-                if (feedItem.content.indexOf('<img') == -1)
+                if (feedItem.content.indexOf('Drudge') == -1 && feedItem.content.indexOf('drudge') == -1)
                     continue;
 
                 feedItem.tags = rssFeed.tags;
