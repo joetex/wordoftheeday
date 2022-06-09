@@ -256,10 +256,10 @@ class Marquee {
             this.setItemTranslation(item.element, -totalWidth)
         }
 
-        // setTimeout(() => {
-        let itemWidth = this.getItemWidth(item.element)
-        item.element.style.width = itemWidth + 'px';
-        // }, 1)
+        setTimeout(() => {
+            let itemWidth = this.getItemWidth(item.element)
+            item.element.style.width = itemWidth + 'px';
+        }, 1)
         item.state = 'enter';
 
         // console.log("[OnEnter]:", this.options.direction, item.data.title);
