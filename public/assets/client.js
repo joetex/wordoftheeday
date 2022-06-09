@@ -17,7 +17,7 @@ function createMarqueeByTag(marqueeId, tag, options) {
 }
 
 async function loadTickers() {
-    let breakingURL = 'https://wotd-public.s3.us-west-000.backblazeb2.com/feeds/topstories.json';
+    let breakingURL = 'https://cdn.wordoftheeday.com/file/wotd-public/feeds/topstories.json';
     await feedmanager.download(breakingURL, 600000);
 
     createMarqueeByTag('breaking-news', 'Top Stories').start();

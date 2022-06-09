@@ -567,6 +567,7 @@ class Marquee {
     }
 
     sanitizeContent = (itemContent) => {
+        if (!itemContent) { return '' }
         itemContent = itemContent.replace(/\r?\n/g, ""); //convert newlines to break tags
         itemContent = itemContent.replace(/\<br ?\/?\>/g, ""); //convert newlines to break tags
         itemContent = itemContent.replace(/\<a[^\>]*\>.*<\/a\>/g, ""); //convert newlines to break tags
