@@ -300,8 +300,12 @@ class Marquee {
 
             this.hideDescription(item);
 
-            if (!item.dirty)
+            if (!item.dirty) {
                 this.queue.pushLeft(item);
+
+                //pushes seen items to back of the list for next feed reload
+                item.data.iteration = (item.data.iteration || 1) - 1;
+            }
 
             if (!this.parent.contains(item.element)) {
                 console.log("item missing from parent")
