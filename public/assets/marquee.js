@@ -40,6 +40,10 @@ class Marquee {
         // ✅ Add event listener
         document.addEventListener('visibilitychange', this.checkTabFocused);
 
+        document.addEventListener('resize', (e) => {
+            this.pause(true);
+            setTimeout(() => { this.play(true) }, 50)
+        });
 
         let marqueeElem = this.parent;
 
@@ -257,19 +261,23 @@ class Marquee {
 
     onEnter = (item) => {
 
-        if (this.options.direction < 0 || (this.dragging && this.xOffset > 0)) {
-            this.setItemTranslation(item.element, 0);
-        }
-        else if (this.options.direction > 0 || (this.dragging && this.xOffset < 0)) {
-            let parentWidth = this.getParentWidth();
-            let itemWidth = this.getItemWidth(item.element) + this.options.paddingSpace;
-            let totalWidth = (parentWidth + itemWidth);
-            this.setItemTranslation(item.element, -totalWidth)
-        }
+
+
+        // setTimeout(() => {
+        let itemWidth = this.getItemWidth(item.element)
+        item.element.style.width = itemWidth + 'px';
+        // }, 1)
 
         setTimeout(() => {
-            let itemWidth = this.getItemWidth(item.element)
-            item.element.style.width = itemWidth + 'px';
+            if (this.options.direction < 0 || (this.dragging && this.xOffset > 0)) {
+                this.setItemTranslation(item.element, 0);
+            }
+            else if (this.options.direction > 0 || (this.dragging && this.xOffset < 0)) {
+                let parentWidth = this.getParentWidth();
+                let itemWidth = this.getItemWidth(item.element) + this.options.paddingSpace;
+                let totalWidth = (parentWidth + itemWidth);
+                this.setItemTranslation(item.element, -totalWidth)
+            }
         }, 1)
         item.state = 'enter';
 
@@ -465,13 +473,19 @@ class Marquee {
 
     showDescription = (item) => {
         let descElem = item.element.querySelector('.marquee-item-desc-wrapper');
-        if (!descElem)
+        if (!descElem) {
             setTimeout(() => {
                 this.createDescription(item);
+                this.updateItemDate(item);
             }, 1);
+        }
+        else {
+            this.updateItemDate(item);
+        }
 
         // setTimeout(() => {
         item.element.classList.add('active');
+        // this.updateItemDate(item);
         // }, 20);
     }
 
@@ -502,44 +516,14 @@ class Marquee {
             featuredImageElem.classList.add('active');
         }
 
-        let dateElem = descTemplate.querySelector('.marquee-item-date');
+
         let sourceElem = descTemplate.querySelector('.marquee-item-source a.marquee-item-source-page');
         let commentsElem = descTemplate.querySelector('.marquee-item-source a.marquee-item-source-comments');
         // let gotoAnchorElem = descTemplate.querySelector('.marquee-item-goto a');
 
-        let dateText = 'no date available';
-        try {
-            let attemptDate = item.data.isoDate || item.data.pubDate;
-            let pubDate = (new Date(attemptDate)).getTime();
-            let todayDate = (new Date()).getTime();
 
-            let diff = todayDate - pubDate;
-            diff = Math.ceil(diff / 1000); //remove ms
 
-            let minute = 60;
-            let hour = minute * 60;
-            let day = hour * 24;
 
-            if (diff < minute * 30) {
-                dateText = '&#128293; just now';
-            }
-            else if (diff < hour) {
-                dateText = 'less than hour ago';
-            }
-            else if (diff < day) {
-                let hours = Math.floor(diff / hour);
-                dateText = hours + (hours > 1 ? ' hours' : ' hour') + ' ago'
-            }
-            else if (diff >= day) {
-                let days = Math.floor(diff / day);
-                dateText = days + (days > 1 ? ' days' : ' day') + ' ago';
-            }
-        }
-        catch (e) {
-            console.error(e);
-        }
-
-        dateElem.innerHTML = dateText;
 
         sourceElem.href = "https://" + item.data.srcDomain;
         sourceElem.textContent = item.data.srcDomain;
@@ -558,10 +542,60 @@ class Marquee {
         // gotoAnchorElem.textContent = 'Read Article';
 
         // let itemWidth = this.getItemWidth(item.element);
-
+        // this.updateItemDate(item);
 
         item.element.appendChild(descTemplate);
         return descTemplate;
+    }
+
+    updateItemDate = (item) => {
+        try {
+            let descCheck = item.element.querySelector('.marquee-item-desc-wrapper');
+            if (!descCheck) {
+                this.createDescription(item);
+                return;
+            }
+
+            let dateElem = descCheck.querySelector('.marquee-item-date');
+            let dateText = 'no date available';
+            let attemptDate = item.data.isoDate || item.data.pubDate;
+            let pubDate = (new Date(attemptDate)).getTime();
+            let todayDate = (new Date()).getTime();
+
+            let fullDateText = (new Date(attemptDate)).toLocaleTimeString('en-US');
+
+            let diff = todayDate - pubDate;
+            diff = Math.ceil(diff / 1000); //remove ms
+
+            let minute = 60;
+            let hour = minute * 60;
+            let day = hour * 24;
+
+            if (diff < minute * 30) {
+                fullDateText = '&#128293; ' + fullDateText;
+                dateText = '&#128293; just now';
+            }
+            else if (diff < hour) {
+                dateText = 'less than hour ago';
+            }
+            else if (diff < day) {
+                let hours = Math.floor(diff / hour);
+                dateText = hours + (hours > 1 ? ' hours' : ' hour') + ' ago'
+            }
+            else if (diff >= day) {
+                let days = Math.floor(diff / day);
+                dateText = days + (days > 1 ? ' days' : ' day') + ' ago';
+                fullDateText = (new Date(attemptDate)).toLocaleTimeString('en-US');
+            }
+
+            dateElem.innerHTML = dateText;
+            dateElem.onmouseenter = (e) => { dateElem.innerHTML = fullDateText };
+            dateElem.onmouseleave = (e) => { dateElem.innerHTML = dateText };
+        }
+        catch (e) {
+            console.error(e);
+        }
+
     }
 
     extractImages = (content) => {
