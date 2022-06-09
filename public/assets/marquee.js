@@ -426,9 +426,9 @@ class Marquee {
     showDescription = (item) => {
         let descElem = item.element.querySelector('.marquee-item-desc-wrapper');
         if (!descElem)
-            // setTimeout(() => { 
-            this.createDescription(item);
-        // }, 1);
+            setTimeout(() => {
+                this.createDescription(item);
+            }, 1);
 
         // setTimeout(() => {
         item.element.classList.add('active');
