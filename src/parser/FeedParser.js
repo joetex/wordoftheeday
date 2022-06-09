@@ -70,10 +70,10 @@ class FeedParser {
 
         await this.compressFile(feedPath);
 
-        var buffer = fs.readFileSync(feedPath);
+        var buffer = fs.readFileSync(feedPath + ".gz");
         var multiPartParams = {
             Bucket: 'wotd-public',
-            Key: 'topstories.json',
+            Key: 'feeds/topstories.json',
             ACL: 'public-read',
             ContentType: 'application/json',
             ContentEncoding: 'gzip'

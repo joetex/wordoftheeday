@@ -20,6 +20,7 @@ class Marquee {
         this.options.nextItemDelay = this.options.nextItemDelay || 500;
         this.prevSpeed = this.options.speed;
 
+        this.showcontent = true;
         this.paused = false;
         this.dragging = false;
         this.mousedown = false;
@@ -39,6 +40,30 @@ class Marquee {
         // ✅ Add event listener
         document.addEventListener('visibilitychange', this.checkTabFocused);
 
+
+        let marqueeElem = this.parent;
+
+        marqueeElem.ondblclick = (e) => {
+            this.togglePause();
+        }
+        marqueeElem.addEventListener('mousedown', (e) => {
+            this.startDrag(e);
+        })
+        marqueeElem.addEventListener('mousemove', (e) => {
+            this.drag(e);
+        })
+        marqueeElem.addEventListener('mouseup', (e) => {
+            this.endDrag(e);
+        })
+
+        document.addEventListener('mouseup', (e) => {
+            this.endDrag(e);
+        })
+        document.addEventListener('mousemove', (e) => {
+            this.drag(e);
+            e.stopPropagation();
+            e.preventDefault();
+        })
     }
 
 
@@ -58,7 +83,7 @@ class Marquee {
     };
 
     getItemWidth = (element) => {
-        return Math.max(600, element.offsetWidth);
+        return Math.max(400, element.offsetWidth);
     };
 
     getTranslateX = (element) => {
@@ -103,7 +128,7 @@ class Marquee {
 
 
 
-
+        //drag to the right
         if (this.xOffset < 0) {
             if (targetX <= (totalWidth - itemWidth) && item.state == 'enter') {
                 this.onEnterFull(item);
@@ -114,7 +139,9 @@ class Marquee {
             else if (targetX > (totalWidth - itemWidth) && item.state == 'enterfull') {
                 item.state = 'enter';
             }
-        } else if (this.xOffset > 0) {
+        }
+        //drag to the left
+        else if (this.xOffset > 0) {
             if (targetX >= itemWidth && item.state == 'enter') {
                 this.onEnterFull(item);
             }
@@ -152,11 +179,14 @@ class Marquee {
 
         item.prevX = currentX;
 
+        //animate to the left
         if (this.options.direction > 0) {
             targetX = 0;
             exitTime = currentX / this.options.speed;
             enterTime = (itemWidth - (totalWidth - currentX)) / this.options.speed;
-        } else {
+        }
+        //animate to the right
+        else {
             exitTime = (targetX - currentX) / this.options.speed;
             targetX = -targetX;
             enterTime = (itemWidth - currentX) / this.options.speed;
@@ -207,9 +237,10 @@ class Marquee {
         // }, 1)
         item.state = 'enter';
 
-        // setTimeout(() => {
-        //     this.createDescription(item);
-        // }, 1)
+        // console.log("[OnEnter]:", this.options.direction, item.data.title);
+
+        if (this.showcontent)
+            this.showDescription(item);
 
     }
 
@@ -223,11 +254,12 @@ class Marquee {
         this.blocked = false;
 
         if (!this.dragging) {
-            // console.log("OnEnterFull: ", item.data.title);
+
             this.animLoop(true);
         }
         else {
             let index = this.inView.indexOf(item);
+            // console.log("OnEnterFull: ", this.options.direction, item.data.title);
             if (index == 0)
                 this.animLoop(true);
         }
@@ -236,9 +268,11 @@ class Marquee {
     onExit = (item) => {
         item.state = 'exit';
 
-        if (this.options.speed == 0)
-            return;
+        // if (this.options.speed == 0)
+        //     return;
 
+
+        // console.log("[OnExit]:", this.options.direction, item.data.title);
 
         // console.log("onExit: ", item.data.title);
         if (!this.dragging) {
@@ -264,21 +298,22 @@ class Marquee {
             let removedItem = this.inView.pop();
             // console.log("[inView] Removed item: ", removedItem.data.title);
 
-            let descElem = item.element.querySelector('.marquee-item-desc-wrapper');
-            if (descElem) {
-                descElem.classList.remove('active');
-                item.element.querySelector('a').classList.remove('active');
-            }
+            this.hideDescription(item);
 
-            this.queue.pushLeft(item);
+            if (!item.dirty)
+                this.queue.pushLeft(item);
+
             if (!this.parent.contains(item.element)) {
                 console.log("item missing from parent")
-
             }
             else
                 this.parent.removeChild(item.element);
         }
 
+    }
+
+    start = () => {
+        this.animLoop();
     }
 
     animLoop = (isFromOnEnter) => {
@@ -335,54 +370,44 @@ class Marquee {
         var item = this.addItem(anchor, feedItem);
         var $this = this;
 
-
         anchor.onclick = function (e) {
             let descElem = e.target.parentNode.querySelector('.marquee-item-desc-wrapper');
-            if (!descElem) {
+            if (!descElem)
                 return false;
-            }
 
+            if (!$this.dragging) {
+                return true;
+            }
             return false;
         }
 
-        anchor.onmouseenter = function (e) {
-
-            if (!item) {
-                for (const i of $this.inView) {
-                    if (i.element = e.target.parentNode) {
-                        item = i;
-                        break;
-                    }
-                }
-
-                if (!item) {
-                    console.error("Item not found");
-                }
-            }
-
-            // let descElem = e.target.parentNode.querySelector('.marquee-item-desc-wrapper');
-            // if (!descElem) {
-            //     descElem = $this.createDescription(item);
-            // }
-
-            item.element.classList.add('active');
-            // e.target.classList.add('active');
-            // descElem.classList.add('active');
+        item.element.onmouseenter = function (e) {
+            $this.showDescription(item);
         }
 
-        anchor.onmouseleave = function (e) {
-
-            // let descElem = e.target.parentNode.querySelector('.marquee-item-desc-wrapper');
-            // if (!descElem) {
-            //     return;
-            // }
-            item.element.classList.remove('active');
-            // e.target.classList.remove('active');
-            // descElem.classList.remove('active');
+        item.element.onmouseleave = function (e) {
+            $this.hideDescription(item);
         }
-
 
         return item;
+    }
+
+
+
+    loadItems = (feedItems) => {
+        for (var i = 0; i < feedItems.length; i++) {
+            this.createItem(feedItems[i]);
+        }
+    }
+    reloadItems = (feedItems) => {
+
+        this.queue.clear();
+        for (var i = 0; i < this.inView.length; i++) {
+            let item = this.inView[i];
+            item.dirty = true;
+        }
+
+        this.loadItems(feedItems);
     }
 
     addItem = (child, data, customClass) => {
@@ -391,12 +416,27 @@ class Marquee {
         if (customClass)
             element.classList.add(customClass);
 
-
-
         element.appendChild(child);
-        // this.parent.appendChild(item);
-        this.queue.push({ element, data });
 
+        let item = { element, data };
+        this.queue.push(item);
+        return item;
+    }
+
+    showDescription = (item) => {
+        let descElem = item.element.querySelector('.marquee-item-desc-wrapper');
+        if (!descElem)
+            // setTimeout(() => { 
+            this.createDescription(item);
+        // }, 1);
+
+        // setTimeout(() => {
+        item.element.classList.add('active');
+        // }, 20);
+    }
+
+    hideDescription = (item) => {
+        item.element.classList.add('active');
     }
 
     createDescription = (item) => {
@@ -422,6 +462,57 @@ class Marquee {
             featuredImageElem.classList.add('active');
         }
 
+        let dateElem = descTemplate.querySelector('.marquee-item-date');
+        let sourceElem = descTemplate.querySelector('.marquee-item-source a.marquee-item-source-page');
+        let commentsElem = descTemplate.querySelector('.marquee-item-source a.marquee-item-source-comments');
+        // let gotoAnchorElem = descTemplate.querySelector('.marquee-item-goto a');
+
+        let dateText = 'no date available';
+        try {
+            let attemptDate = item.data.isoDate || item.data.pubDate;
+            let pubDate = (new Date(attemptDate)).getTime();
+            let todayDate = (new Date()).getTime();
+
+            let diff = todayDate - pubDate;
+            diff = Math.ceil(diff / 1000); //remove ms
+
+            let minute = 60;
+            let hour = minute * 60;
+            let day = hour * 24;
+
+            if (diff < minute * 30) {
+                dateText = 'just now';
+            }
+            else if (diff < hour) {
+                dateText = 'less than hour ago';
+            }
+            else if (diff < day) {
+                let hours = Math.floor(diff / hour);
+                dateText = hours + (hours > 1 ? ' hours' : ' hour') + ' ago'
+            }
+            else if (diff >= day) {
+                let days = Math.floor(diff / day);
+                dateText = days + (days > 1 ? ' days' : ' day') + ' ago';
+            }
+        }
+        catch (e) {
+            console.error(e);
+        }
+
+        dateElem.textContent = dateText;
+
+        sourceElem.href = "https://" + item.data.srcDomain;
+        sourceElem.textContent = item.data.srcDomain;
+
+        if (!item.data.comments) {
+            commentsElem.style.display = 'none';
+        } else {
+            commentsElem.style.display = 'block';
+            commentsElem.href = item.data.comments;
+        }
+        // let owner = item.data.owner || item.data.srcDomain;
+        // gotoAnchorElem.href = item.data.link;
+        // gotoAnchorElem.textContent = 'Read Article';
 
         // let itemWidth = this.getItemWidth(item.element);
 
@@ -485,6 +576,9 @@ class Marquee {
 
         let prevDirection = this.options.direction;
 
+        if (newDir == 0)
+            return;
+
         if (newDir < 0) {
             this.options.direction = -1;
         } else {
@@ -511,16 +605,7 @@ class Marquee {
             this.pause();
     }
 
-    pause = (isSystemTriggered) => {
-        if (this.options.speed == 0)
-            return;
-        this.prevSpeed = this.options.speed;
-        this.options.speed = 0;
-
-
-        if (!isSystemTriggered) {
-            this.paused = true;
-        }
+    clearAllTimeouts = () => {
         if (this.animLoopTimeout != 0) {
             clearTimeout(this.animLoopTimeout);
             this.animLoopTimeout = 0;
@@ -551,11 +636,24 @@ class Marquee {
             }
 
         }
+    }
 
-        // for (var i = 0; i < items.length; i++) {
-        //     let item = items[i];
-        //     this.setItemPaused(item);
-        // }
+    pause = (isSystemTriggered) => {
+        if (this.options.speed == 0)
+            return;
+        this.prevSpeed = this.options.speed;
+        this.options.speed = 0;
+
+
+        if (!isSystemTriggered) {
+            this.paused = true;
+        }
+
+
+        this.clearAllTimeouts();
+        setTimeout(() => {
+            this.endDrag();
+        }, 1)
     }
 
     play = (isSystemTriggered) => {
@@ -595,12 +693,17 @@ class Marquee {
 
         let diff = Math.abs(this.xStart - e.clientX);
         if (diff > 10) {
+            if (!this.dragging) {
+                this.clearAllTimeouts();
+            }
             this.dragging = true;
         }
 
         if (!this.dragging) {
             return;
         }
+
+
 
 
         this.xOffset = (this.xPrev - e.clientX);
@@ -614,19 +717,24 @@ class Marquee {
 
     endDrag = (e) => {
 
-        if (!this.dragging)
-            return;
+        let prevDragging = this.dragging;
 
-        this.setDirection(this.prevDirection);
+        setTimeout(() => {
+            this.dragging = false;
+            this.mousedown = false;
 
-        this.dragging = false;
-        this.mousedown = false;
+            if (prevDragging) {
+                let i = 0;
+                for (const item of this.inView) {
+                    this.processItemTranslation(item, i == 0);
+                    i++;
+                }
+            }
 
-        let i = 0;
-        for (const item of this.inView) {
-            this.processItemTranslation(item, i == 0);
-            i++;
-        }
+        }, 1)
+
+
+
 
 
 

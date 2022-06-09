@@ -1,5 +1,11 @@
 [
     {
+        "title":"HackerNews",
+        "link":"https://news.ycombinator.com/",
+        "url":"https://news.ycombinator.com/rss",
+        "tags": ["HackerNews"]
+    },
+    {
         "title": "CNN",
         "link": "https://www.cnn.com/",
         "url": "http://rss.cnn.com/rss/cnn_topstories.rss",
@@ -26,13 +32,13 @@
    
     {
         "title": "Drudge Report",
-        "link": "http://drudgereport.com",
+        "link": "https://drudgereport.com",
         "url": "https://feeds.feedburner.com/DrudgeReportFeed",
-        "tags": ["Republican", "U.S.", "Top Stories"]
+        "tags": ["Republican", "U.S.", "DrudgeReport"]
     },
     {
         "title": "National Review",
-        "link": "http://nationalreview.com",
+        "link": "https://nationalreview.com",
         "url": "https://www.nationalreview.com/feed/",
         "tags": ["Republican", "U.S.", "Top Stories"]
     },
