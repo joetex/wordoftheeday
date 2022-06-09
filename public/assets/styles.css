@@ -118,7 +118,7 @@ html, body {
     border-top: 1.5rem solid transparent;
     border-left: 1.5rem solid transparent;
     position: absolute;
-    left: -3rem;
+    left: -2.9rem;
 	top:0;
 }
 
@@ -131,7 +131,7 @@ html, body {
     border-bottom: 1.5rem solid transparent;
     border-right: 1.5rem solid transparent;
     position: absolute;
-    right: -3rem;
+    right: -2.9rem;
 	top:0rem;
 }
 }
