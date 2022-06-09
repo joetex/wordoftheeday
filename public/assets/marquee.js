@@ -46,6 +46,17 @@ class Marquee {
         marqueeElem.ondblclick = (e) => {
             this.togglePause();
         }
+
+        marqueeElem.parentNode.querySelector('.marquee-header').ondblclick = (e) => {
+            this.showcontent = !this.showcontent;
+
+            for (var item in this.inView) {
+                if (this.showcontent)
+                    this.showDescription(item);
+                else
+                    this.hideDescription(item);
+            }
+        }
         marqueeElem.addEventListener('mousedown', (e) => {
             this.startDrag(e.clientX);
         })
@@ -510,7 +521,7 @@ class Marquee {
             let day = hour * 24;
 
             if (diff < minute * 30) {
-                dateText = 'just now';
+                dateText = '&#9889; just now';
             }
             else if (diff < hour) {
                 dateText = 'less than hour ago';
