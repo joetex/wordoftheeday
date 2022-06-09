@@ -47,20 +47,45 @@ class Marquee {
             this.togglePause();
         }
         marqueeElem.addEventListener('mousedown', (e) => {
-            this.startDrag(e);
+            this.startDrag(e.clientX);
         })
         marqueeElem.addEventListener('mousemove', (e) => {
-            this.drag(e);
+            this.drag(e.clientX);
         })
         marqueeElem.addEventListener('mouseup', (e) => {
-            this.endDrag(e);
+            this.endDrag(e.clientX);
+        })
+
+
+        marqueeElem.addEventListener('touchstart', (e) => {
+            var touchobj = e.changedTouches[0];
+            this.startDrag(touchobj.clientX);
+        })
+        marqueeElem.addEventListener('touchmove', (e) => {
+            var touchobj = e.changedTouches[0];
+            this.drag(touchobj.clientX);
+        })
+        marqueeElem.addEventListener('touchend', (e) => {
+            var touchobj = e.changedTouches[0];
+            this.endDrag(touchobj.clientX);
         })
 
         document.addEventListener('mouseup', (e) => {
-            this.endDrag(e);
+            this.endDrag(e.clientX);
         })
         document.addEventListener('mousemove', (e) => {
-            this.drag(e);
+            this.drag(e.clientX);
+            e.stopPropagation();
+            e.preventDefault();
+        })
+
+        document.addEventListener('touchend', (e) => {
+            var touchobj = e.changedTouches[0];
+            this.endDrag(touchobj.clientX);
+        })
+        document.addEventListener('touchmove', (e) => {
+            var touchobj = e.changedTouches[0];
+            this.drag(touchobj.clientX);
             e.stopPropagation();
             e.preventDefault();
         })
@@ -514,6 +539,9 @@ class Marquee {
             commentsElem.style.display = 'block';
             commentsElem.href = item.data.comments;
         }
+
+        sourceElem.onclick = (e) => !this.dragging
+        commentsElem.onclick = (e) => !this.dragging
         // let owner = item.data.owner || item.data.srcDomain;
         // gotoAnchorElem.href = item.data.link;
         // gotoAnchorElem.textContent = 'Read Article';
@@ -681,21 +709,21 @@ class Marquee {
     }
 
 
-    startDrag = (e) => {
+    startDrag = (x) => {
 
         this.mousedown = true;
-        this.xStart = e.clientX;
-        this.xPrev = e.clientX;
+        this.xStart = x;
+        this.xPrev = x;
         this.prevDirection = this.options.direction;
         // this.pause(true);
     }
 
-    drag = (e) => {
+    drag = (x) => {
         if (!this.mousedown) {
             return;
         }
 
-        let diff = Math.abs(this.xStart - e.clientX);
+        let diff = Math.abs(this.xStart - x);
         if (diff > 10) {
             if (!this.dragging) {
                 this.clearAllTimeouts();
@@ -710,8 +738,8 @@ class Marquee {
 
 
 
-        this.xOffset = (this.xPrev - e.clientX);
-        this.xPrev = e.clientX;
+        this.xOffset = (this.xPrev - x);
+        this.xPrev = x;
 
         this.setDirection(-this.xOffset);
         // console.log("xOffset = ", this.xOffset);

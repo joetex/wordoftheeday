@@ -29,9 +29,9 @@ class FeedManager {
 
     checkTabFocused = () => {
         if (document.visibilityState === 'visible') {
-            this.play(true);
+            // this.play(true);
         } else {
-            this.pause(true);
+            // this.pause(true);
         }
     }
 
