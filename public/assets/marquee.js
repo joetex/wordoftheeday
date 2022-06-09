@@ -521,7 +521,7 @@ class Marquee {
             let day = hour * 24;
 
             if (diff < minute * 30) {
-                dateText = '&#9889; just now';
+                dateText = '&#9889;just now';
             }
             else if (diff < hour) {
                 dateText = 'less than hour ago';
