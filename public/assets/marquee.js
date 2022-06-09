@@ -539,7 +539,7 @@ class Marquee {
             console.error(e);
         }
 
-        dateElem.textContent = dateText;
+        dateElem.innerHTML = dateText;
 
         sourceElem.href = "https://" + item.data.srcDomain;
         sourceElem.textContent = item.data.srcDomain;
