@@ -82,7 +82,7 @@ class FeedManager {
                 feedItem.owner = rssFeed.title;
                 feedItem.srcURL = rssFeed.link;
                 feedItem.srcRSS = rssFeed.url;
-                feedItem.srcDomain = rssFeed.link.replace(/(https\:\/\/)|(http\:\/\/)/ig, '').split('/')[0];
+                feedItem.srcDomain = rssFeed.link.replace(/(https\:\/\/)|(http\:\/\/)/ig, '').replace('www\.', '').split('/')[0];
                 feedItem.iteration = this.feedsIteration[url];
                 this.putFeed(feedItem);
             }

@@ -20,7 +20,7 @@ class Marquee {
         this.options.nextItemDelay = this.options.nextItemDelay || 500;
         this.prevSpeed = this.options.speed;
 
-        this.showcontent = true;
+        this.showcontent = false;
         this.paused = false;
         this.dragging = false;
         this.mousedown = false;
@@ -54,6 +54,12 @@ class Marquee {
         marqueeElem.parentNode.querySelector('.marquee-header').ondblclick = (e) => {
             this.showcontent = !this.showcontent;
 
+            if (this.showcontent) {
+                this.parent.parentNode.classList.add('active');
+            }
+            else {
+                this.parent.parentNode.classList.remove('active');
+            }
             for (var item of this.inView) {
                 if (this.showcontent)
                     this.showDescription(item);
@@ -263,12 +269,15 @@ class Marquee {
 
 
 
-        // setTimeout(() => {
-        let itemWidth = this.getItemWidth(item.element)
-        item.element.style.width = itemWidth + 'px';
-        // }, 1)
+        setTimeout(() => {
+
+        }, 1)
 
         setTimeout(() => {
+
+            let itemWidth = this.getItemWidth(item.element)
+            item.element.style.width = itemWidth + 'px';
+
             if (this.options.direction < 0 || (this.dragging && this.xOffset > 0)) {
                 this.setItemTranslation(item.element, 0);
             }
@@ -518,6 +527,10 @@ class Marquee {
             featuredImageElem.classList.add('active');
         }
 
+
+        if ((!itemContent || itemContent.length == 0) && images.length == 0) {
+            content.remove();
+        }
 
         let sourceElem = descTemplate.querySelector('.marquee-item-source a.marquee-item-source-page');
         let commentsElem = descTemplate.querySelector('.marquee-item-source a.marquee-item-source-comments');
