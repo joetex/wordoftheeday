@@ -54,7 +54,7 @@ class Marquee {
         marqueeElem.parentNode.querySelector('.marquee-header').ondblclick = (e) => {
             this.showcontent = !this.showcontent;
 
-            for (var item in this.inView) {
+            for (var item of this.inView) {
                 if (this.showcontent)
                     this.showDescription(item);
                 else
@@ -342,7 +342,8 @@ class Marquee {
             let removedItem = this.inView.pop();
             // console.log("[inView] Removed item: ", removedItem.data.title);
 
-            this.hideDescription(item);
+            if (!this.showcontent)
+                this.hideDescription(item);
 
             if (!item.dirty) {
                 this.queue.pushLeft(item);
@@ -418,7 +419,7 @@ class Marquee {
         var item = this.addItem(anchor, feedItem);
         var $this = this;
 
-        anchor.onclick = function (e) {
+        anchor.onclick = (e) => {
             let descElem = e.target.parentNode.querySelector('.marquee-item-desc-wrapper');
             if (!descElem)
                 return false;
@@ -429,12 +430,13 @@ class Marquee {
             return false;
         }
 
-        item.element.onmouseenter = function (e) {
+        item.element.onmouseenter = (e) => {
             $this.showDescription(item);
         }
 
-        item.element.onmouseleave = function (e) {
-            $this.hideDescription(item);
+        item.element.onmouseleave = (e) => {
+            if (!this.showcontent)
+                $this.hideDescription(item);
         }
 
         return item;
@@ -490,7 +492,7 @@ class Marquee {
     }
 
     hideDescription = (item) => {
-        item.element.classList.add('active');
+        item.element.classList.remove('active');
     }
 
     createDescription = (item) => {
@@ -576,7 +578,8 @@ class Marquee {
                 dateText = '&#128293; just now';
             }
             else if (diff < hour) {
-                dateText = 'less than hour ago';
+                fullDateText = '&#128293; ' + fullDateText;
+                dateText = '&#128293; less than hour ago';
             }
             else if (diff < day) {
                 let hours = Math.floor(diff / hour);

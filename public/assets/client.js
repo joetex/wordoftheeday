@@ -21,6 +21,12 @@ async function loadTickers() {
     await feedmanager.download(breakingURL, 600000);
 
     createMarqueeByTag('breaking-news', 'Top Stories').start();
+
+
+    // let financeURL = 'https://cdn.wordoftheeday.com/file/wotd-public/feeds/topstories.json';
+    // await feedmanager.download(breakingURL, 600000);
+
+    createMarqueeByTag('finance-news', 'Stock Market').start();
 }
 
 

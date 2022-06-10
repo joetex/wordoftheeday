@@ -47,6 +47,23 @@
         "link": "https://www.washingtonexaminer.com/",
         "url": "https://www.washingtonexaminer.com/tag/news.rss",
         "tags": ["Republican", "U.S.", "Top Stories"]
+    },
+    {
+        "title": "Market Watch",
+        "link": "https://www.marketwatch.com/",
+        "url": "http://feeds.marketwatch.com/marketwatch/topstories/",
+        "tags": ["Stock Market"]
+    },
+    {
+        "title": "Investing.com",
+        "link": "https://www.investing.com/",
+        "url": "https://www.investing.com/rss/news.rss",
+        "tags": ["Stock Market"]
+    },
+    {
+        "title": "CNNMoney",
+        "link": "http://money.cnn.com/?section=money_topstories",
+        "url": "http://rss.cnn.com/rss/money_topstories.rss",
+        "tags": ["Stock Market"]
     }
-    
 ]
