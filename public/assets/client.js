@@ -12,6 +12,9 @@ function createMarqueeByTag(marqueeId, tag, options) {
         marquee.reloadItems(newItems);
     }, 180000)
 
+
+    marquee.toggleShowContent();
+
     marquees[marqueeId] = marquee;
     return marquee;
 }

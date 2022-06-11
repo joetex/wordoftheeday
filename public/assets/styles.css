@@ -18,6 +18,7 @@ html, body {
 	height:3rem;
 	width:100%;
 	position:relative;
+	transition:height 0.3s ease;
 	/* overflow:hidden; */
 	
 }
@@ -40,6 +41,7 @@ html, body {
 	color: #efefef;
 	box-sizing: border-box;
 	border-top:0.0714rem solid #ccc;
+	
 }
 
 .marquee.active {
@@ -63,7 +65,7 @@ html, body {
 }
 
 .marquee-item.active a {
-	text-decoration: underline;
+	/* text-decoration: underline; */
 }
 
 /* .marquee-header {
@@ -88,6 +90,7 @@ html, body {
 @media screen and (min-width: 768px) {
 .marquee-header { 
     height: 3rem; 
+	width:10rem;
 	padding-left:1rem;
 	padding-right:0.5rem;
     background: #f00;
@@ -158,6 +161,7 @@ html, body {
 	}
 	.marquee-header { 
 		height: 3rem; 
+		
 		padding-left:1rem;
 		padding-right:0.5rem;
 		
@@ -219,7 +223,8 @@ html, body {
 	color:#444;
 	line-height:1.3rem;
 	font-weight: 100;
-	display:none;
+	opacity:0;
+	transition:opacity 0.2s ease;
 	background-color:rgb(245, 245, 245);
 	
 	padding-left:1rem;
@@ -230,6 +235,7 @@ html, body {
 	display:block;
 	position:relative;
 	z-index:8;
+	opacity:1;
 }
 
 .marquee-item-desc-flex {

@@ -52,20 +52,7 @@ class Marquee {
         }
 
         marqueeElem.parentNode.querySelector('.marquee-header').ondblclick = (e) => {
-            this.showcontent = !this.showcontent;
-
-            if (this.showcontent) {
-                this.parent.parentNode.classList.add('active');
-            }
-            else {
-                this.parent.parentNode.classList.remove('active');
-            }
-            for (var item of this.inView) {
-                if (this.showcontent)
-                    this.showDescription(item);
-                else
-                    this.hideDescription(item);
-            }
+            this.toggleShowContent();
         }
         marqueeElem.addEventListener('mousedown', (e) => {
             this.startDrag(e.clientX);
@@ -113,6 +100,23 @@ class Marquee {
     }
 
 
+    toggleShowContent = () => {
+        this.showcontent = !this.showcontent;
+
+        if (this.showcontent) {
+            this.parent.parentNode.classList.add('active');
+        }
+        else {
+            this.parent.parentNode.classList.remove('active');
+        }
+        for (var item of this.inView) {
+            if (this.showcontent)
+                this.showDescription(item);
+            else
+                this.hideDescription(item);
+        }
+    }
+
     checkTabFocused = () => {
         if (document.visibilityState === 'visible' && !this.paused) {
             this.play(true);
@@ -124,12 +128,13 @@ class Marquee {
 
 
     getParentWidth = () => {
-        let width = this.parent.offsetWidth / 2;
+        let width = this.parent.offsetWidth;
         return width;
     };
 
     getItemWidth = (element) => {
         return Math.max(400, element.offsetWidth);
+        // return element.offsetWidth;
     };
 
     getTranslateX = (element) => {
@@ -269,25 +274,23 @@ class Marquee {
 
 
 
-        setTimeout(() => {
+        // setTimeout(() => {
+        let itemWidth = this.getItemWidth(item.element)
+        if (itemWidth < 400)
+            item.element.style.width = '400px';
+        // }, 50)
 
-        }, 1)
-
-        setTimeout(() => {
-
-            let itemWidth = this.getItemWidth(item.element)
-            item.element.style.width = itemWidth + 'px';
-
-            if (this.options.direction < 0 || (this.dragging && this.xOffset > 0)) {
-                this.setItemTranslation(item.element, 0);
-            }
-            else if (this.options.direction > 0 || (this.dragging && this.xOffset < 0)) {
-                let parentWidth = this.getParentWidth();
-                let itemWidth = this.getItemWidth(item.element) + this.options.paddingSpace;
-                let totalWidth = (parentWidth + itemWidth);
-                this.setItemTranslation(item.element, -totalWidth)
-            }
-        }, 1)
+        // setTimeout(() => {
+        if (this.options.direction < 0 || (this.dragging && this.xOffset > 0)) {
+            this.setItemTranslation(item.element, 0);
+        }
+        else if (this.options.direction > 0 || (this.dragging && this.xOffset < 0)) {
+            let parentWidth = this.getParentWidth();
+            let itemWidth = this.getItemWidth(item.element) + this.options.paddingSpace;
+            let totalWidth = (parentWidth + itemWidth);
+            this.setItemTranslation(item.element, -totalWidth)
+        }
+        // }, 1)
         item.state = 'enter';
 
         // console.log("[OnEnter]:", this.options.direction, item.data.title);
@@ -413,11 +416,17 @@ class Marquee {
         this.inView.pushLeft(item);
 
 
-        //trigger onEnter event
-        this.onEnter(item);
 
-        //process animation
-        this.processItemTranslation(item, true);
+
+        //process animation next frame
+        setTimeout(() => {
+            //trigger onEnter event
+            this.onEnter(item);
+
+            setTimeout(() => {
+                this.processItemTranslation(item, true);
+            }, 1)
+        }, 1)
     }
 
     createItem = (feedItem) => {
@@ -441,17 +450,26 @@ class Marquee {
 
         item.element.onmouseenter = (e) => {
             $this.showDescription(item);
+            $this.addItemDescZIndex(item);
         }
 
         item.element.onmouseleave = (e) => {
-            if (!this.showcontent)
+            if (!this.showcontent) {
                 $this.hideDescription(item);
+
+            }
+            $this.removeItemDescZIndex(item);
         }
 
         return item;
     }
 
-
+    addItemDescZIndex = (item) => {
+        item.element.style.zIndex = 1;
+    }
+    removeItemDescZIndex = (item) => {
+        item.element.style.zIndex = null;
+    }
 
     loadItems = (feedItems) => {
         for (var i = 0; i < feedItems.length; i++) {
